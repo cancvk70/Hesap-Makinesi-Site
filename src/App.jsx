@@ -8,6 +8,36 @@ export default function App() {
   const [showHistory, setShowHistory] = useState(false);
   const [theme, setTheme] = useState('dark');
 
+  // Dokunma sesi için ses oluştur
+  const playClickSound = () => {
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    
+    oscillator.frequency.value = 800;
+    oscillator.type = 'sine';
+    
+    gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+    
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + 0.1);
+  };
+
+  // Sayıları formatla (binlik ayırıcı)
+  const formatNumber = (num) => {
+    if (num === '' || num === null || num === undefined) return '';
+    
+    const str = num.toString();
+    const parts = str.split('.');
+    const integerPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    
+    return parts.length > 1 ? `${integerPart}.${parts[1]}` : integerPart;
+  };
+
   useEffect(() => {
     const savedTheme = localStorage.getItem('calculator_theme');
     if (savedTheme) setTheme(savedTheme);
@@ -31,6 +61,7 @@ export default function App() {
   };
 
   const toggleTheme = () => {
+    playClickSound();
     const newTheme = theme === 'dark' ? 'light' : 'dark';
     setTheme(newTheme);
     saveTheme(newTheme);
@@ -38,7 +69,9 @@ export default function App() {
 
   const evaluateExpression = (expr) => {
     try {
+      // Virgülleri kaldır (binlik ayırıcı)
       let processedExpr = expr
+        .replace(/,/g, '')
         .replace(/\s+/g, '')
         .replace(/×/g, '*')
         .replace(/÷/g, '/')
@@ -71,6 +104,7 @@ export default function App() {
   const handleCalculate = () => {
     if (!input.trim()) return;
 
+    playClickSound();
     const value = evaluateExpression(input);
     
     if (value !== null) {
@@ -100,24 +134,29 @@ export default function App() {
   };
 
   const addToInput = (value) => {
+    playClickSound();
     setInput(prev => prev + value);
   };
 
   const clearInput = () => {
+    playClickSound();
     setInput('');
     setResult('');
   };
 
   const deleteLastChar = () => {
+    playClickSound();
     setInput(prev => prev.slice(0, -1));
   };
 
   const clearHistory = () => {
+    playClickSound();
     setHistory([]);
     localStorage.removeItem('calculator_history');
   };
 
   const loadFromHistory = (item) => {
+    playClickSound();
     setInput(item.expression);
     setResult(item.result);
     setShowHistory(false);
@@ -178,7 +217,10 @@ export default function App() {
                   {isDark ? <Sun size={20} /> : <Moon size={20} />}
                 </button>
                 <button
-                  onClick={() => setShowHistory(!showHistory)}
+                  onClick={() => {
+                    playClickSound();
+                    setShowHistory(!showHistory);
+                  }}
                   className={`p-2.5 rounded-xl transition-all active:scale-95 ${
                     showHistory
                       ? isDark
@@ -197,18 +239,13 @@ export default function App() {
             <div className={`rounded-2xl p-5 mb-4 shadow-inner ${
               isDark ? 'bg-gray-900/50' : 'bg-gray-50'
             }`}>
-              <input
-                type="text"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={handleKeyPress}
-                placeholder="0"
-                className={`w-full bg-transparent text-right text-3xl outline-none font-light ${
-                  isDark 
-                    ? 'text-white placeholder-gray-600' 
-                    : 'text-gray-900 placeholder-gray-400'
-                }`}
-              />
+              <div className={`w-full bg-transparent text-right text-3xl outline-none font-light ${
+                isDark 
+                  ? 'text-white placeholder-gray-600' 
+                  : 'text-gray-900 placeholder-gray-400'
+              }`}>
+                {formatNumber(input) || '0'}
+              </div>
               {result && (
                 <div className={`text-right text-4xl font-bold mt-3 animate-fade-in ${
                   result === 'Hata'
@@ -217,7 +254,7 @@ export default function App() {
                       ? 'text-blue-400' 
                       : 'text-blue-600'
                 }`}>
-                  = {result}
+                  = {formatNumber(result)}
                 </div>
               )}
             </div>
@@ -246,7 +283,10 @@ export default function App() {
                       </button>
                     )}
                     <button
-                      onClick={() => setShowHistory(false)}
+                      onClick={() => {
+                        playClickSound();
+                        setShowHistory(false);
+                      }}
                       className={`p-1.5 rounded-lg transition-all active:scale-95 ${
                         isDark 
                           ? 'hover:bg-gray-800 text-gray-400' 
@@ -278,12 +318,12 @@ export default function App() {
                         <div className={`text-sm mb-1 ${
                           isDark ? 'text-gray-400' : 'text-gray-600'
                         }`}>
-                          {item.expression}
+                          {formatNumber(item.expression)}
                         </div>
                         <div className={`font-semibold text-lg ${
                           isDark ? 'text-white' : 'text-gray-900'
                         }`}>
-                          = {item.result}
+                          = {formatNumber(item.result)}
                         </div>
                         <div className={`text-xs mt-1 ${
                           isDark ? 'text-gray-600' : 'text-gray-400'
@@ -362,4 +402,4 @@ export default function App() {
       </div>
     </div>
   );
-                                            }
+                 }
