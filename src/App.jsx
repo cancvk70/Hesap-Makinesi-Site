@@ -10,12 +10,6 @@ export default function App() {
   const audioContextRef = useRef(null);
   const lastSoundTimeRef = useRef(0);
 
-  // Ses için AudioContext'i bir kere oluştur
-  const formatDisplay = (str) => {
-    if (!str) return '';
-    return formatNumber(str);
-  };
-
   useEffect(() => {
     audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
     return () => {
@@ -25,7 +19,6 @@ export default function App() {
     };
   }, []);
 
-  // Geliştirilmiş dokunma sesi
   const playClickSound = () => {
     const now = Date.now();
     if (now - lastSoundTimeRef.current < 50) return;
@@ -78,6 +71,11 @@ export default function App() {
     const integerPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
     
     return parts.length > 1 ? `${integerPart}.${parts[1]}` : integerPart;
+  };
+
+  const formatDisplay = (str) => {
+    if (!str) return '';
+    return formatNumber(str);
   };
 
   useEffect(() => {
@@ -277,10 +275,10 @@ export default function App() {
               </div>
             </div>
 
-            <div className={`rounded-2xl p-5 mb-4 shadow-inner ${
+            <div className={`rounded-2xl p-5 mb-4 shadow-inner max-h-40 overflow-y-auto ${
               isDark ? 'bg-gray-900/50' : 'bg-gray-50'
             }`}>
-              <div className={`w-full bg-transparent text-right text-3xl outline-none font-light break-all ${
+              <div className={`w-full bg-transparent text-right text-3xl outline-none font-light break-words ${
                 isDark 
                   ? 'text-white placeholder-gray-600' 
                   : 'text-gray-900 placeholder-gray-400'
@@ -288,7 +286,7 @@ export default function App() {
                 {formatDisplay(input) || '0'}
               </div>
               {result && (
-                <div className={`text-right text-4xl font-bold mt-3 animate-fade-in break-all ${
+                <div className={`text-right text-4xl font-bold mt-3 animate-fade-in break-words ${
                   result === 'Hata'
                     ? 'text-red-500'
                     : isDark 
@@ -443,4 +441,4 @@ export default function App() {
       </div>
     </div>
   );
-                        }
+  }
